@@ -96,7 +96,6 @@ float = many digit `bind` \x ->
 
 int :: Parser Expr 
 int = many digit `bind` \x ->
-        -- result (FloatLiteral (123))
         result (FloatLiteral (read x))
 
 expression :: Parser Expr
@@ -144,8 +143,44 @@ readVar' = string "READ" `bind` \x ->
 readVar :: Parser Statement 
 readVar = first $ consumeLeadingSpaces readVar'
 
+do' :: Parser Statement 
+do' = string "DO" `bind` \x ->
+      spaces `bind` \y -> 
+      assignment `bind` \start ->
+      char ',' `bind` \q ->
+      spaces `bind` \w -> 
+      expression `bind` \stop ->
+      spaces `bind` \s -> 
+      many statement `bind` \stmts ->
+    --   statement `bind` \stmts ->
+      spaces `bind` \s -> 
+      string "END DO" `bind` \xs ->
+      result (Loop start stop (FloatLiteral 1) stmts)
+    --   result (Loop start stop [stmts])
+    --   result (Loop start stop [])
+    --   result (Loop (Assignment (Ident "aa") (FloatLiteral 1)) (FloatLiteral 1) [])
+      
+stepDo' :: Parser Statement 
+stepDo' = string "DO" `bind` \x ->
+      spaces `bind` \y -> 
+      assignment `bind` \start ->
+      char ',' `bind` \q ->
+      spaces `bind` \w -> 
+      expression `bind` \stop ->
+      char ',' `bind` \q ->
+      spaces `bind` \s -> 
+      expression `bind` \step ->
+      many statement `bind` \stmts ->
+      spaces `bind` \s -> 
+      string "END DO" `bind` \xs ->
+      result (Loop start stop step stmts)
+
+doLoop :: Parser Statement
+doLoop = first $ consumeLeadingSpaces $ do' `plus` stepDo' 
 
 statement :: Parser Statement
-statement = readVar `plus`
+statement = doLoop `plus`
+            readVar `plus`
+            readVar `plus`
             write `plus`
             assignment

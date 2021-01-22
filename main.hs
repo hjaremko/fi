@@ -19,6 +19,7 @@ parse s = map fst (parseHelp s [])
 
 data Var = Var String Float deriving Show
 data State = St [Var] deriving Show
+-- data State = St [Var] [LabelStmt] deriving Show
 
 findVarValue :: [Var] -> String -> Float
 findVarValue [] _ = 0;
@@ -47,7 +48,6 @@ varValue name (St vars) = findVarValue vars name
 readSt :: State -> String -> IO State
 readSt state id = do 
     n <- getLine
-    -- (evalAssignment state id (read n), return())
     return (evalAssignment state id (read n))
 
 evalOne :: Statement -> State -> IO State
@@ -62,28 +62,34 @@ evalOne (PrintVar (Ident id)) state = do
 evalOne (Read (Ident id)) state = do
     n <- getLine
     return (evalAssignment state id (read n))
+evalOne (Loop (Assignment id (FloatLiteral val)) (FloatLiteral stop) (FloatLiteral step) stmts) state = do
+    s <- evalOne (Assignment id (FloatLiteral val)) state
+    if (val < stop) then do
+        s' <- eval stmts s
+        let nextLoop = Loop (Assignment id (FloatLiteral (val + step))) (FloatLiteral stop) (FloatLiteral step) stmts
+        evalOne nextLoop s'
+    else do 
+        return s
 
--- evalOne :: Statement -> State -> (State, IO())
--- evalOne (Assignment (Ident id) (FloatLiteral val)) state = (evalAssignment state id val, return ())
--- evalOne (PrintExpr expr) state = (state, print $ evalExpr expr)
--- evalOne (PrintVar (Ident id)) state = (state, print $ varValue id state)
--- evalOne (Read (Ident id)) state = 
---     (evalAssignment state id (read (n)), do n <- getLine; return ())
-        -- (evalAssignment state id (read (n)), return ())
-
+-- loop :: 
+-- loop :: [Statement] -> State -> IO State
+-- loop stmst state = do
+--     s <- evalOne start state
+--     s' <- eval stmts s
+--     return s'
+    
 eval :: [Statement] -> State -> IO State
 eval [] s = return s
 eval (parseResult:rest) state = do
     r <- evalOne parseResult state
-    -- snd r
     eval rest r
-    -- eval rest $ fst r
 
 main :: IO ()
 main = do
   (filename : _) <- getArgs
   fileContent <- readFile filename
   let parsed = parse fileContent
+  print parsed
   let state = St []
   eval parsed state
-  print parsed
+  return ()
