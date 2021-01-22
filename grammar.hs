@@ -3,7 +3,7 @@ module Grammar where
 -- data Indentificator = Ident String 
 
 data Variable = Ident String deriving Show
-data Label = Label Int deriving Show
+type Label = Int
 
 data Expr = FloatLiteral Float
     deriving Show

@@ -20,6 +20,13 @@ parse s = map fst (parseHelp s [])
 data Var = Var String Float deriving Show
 data State = St [Var] deriving Show
 -- data State = St [Var] [LabelStmt] deriving Show
+type JumpData =  [(Int, Int)]-- deriving Show
+
+readJumpData ::[Statement] -> JumpData
+readJumpData sts = filter (\(_,i) -> i /= -1) (map toJumpData (addIndex sts))
+    where toJumpData (i, LabelStmt label _) = (label, i)
+          toJumpData _ = (0, -1)
+          addIndex = zip [1..] 
 
 findVarValue :: [Var] -> String -> Float
 findVarValue [] _ = 0;
@@ -70,6 +77,7 @@ evalOne (Loop (Assignment id (FloatLiteral val)) (FloatLiteral stop) (FloatLiter
         evalOne nextLoop s'
     else do 
         return s
+evalOne (LabelStmt _ stmt) state = evalOne stmt state 
 
 -- loop :: 
 -- loop :: [Statement] -> State -> IO State
@@ -88,8 +96,15 @@ main :: IO ()
 main = do
   (filename : _) <- getArgs
   fileContent <- readFile filename
+
   let parsed = parse fileContent
   print parsed
+
+--   let jd = readJumpData parsed
+--   print jd
+  
   let state = St []
+--   let jumpData = readJumpData parsed
   eval parsed state
+
   return ()

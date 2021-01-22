@@ -178,9 +178,21 @@ stepDo' = string "DO" `bind` \x ->
 doLoop :: Parser Statement
 doLoop = first $ consumeLeadingSpaces $ do' `plus` stepDo' 
 
+labelStatement :: Parser Statement 
+labelStatement = first $ consumeLeadingSpaces 
+                 (many digit) `bind` \x ->
+                 spaces `bind` \s ->
+                 statement' `bind` \st ->
+                 result (LabelStmt (read x) st)
+
+
+statement' :: Parser Statement
+statement' = doLoop 
+            `plus` readVar 
+            `plus` readVar 
+            `plus` write 
+            `plus` assignment 
+
 statement :: Parser Statement
-statement = doLoop `plus`
-            readVar `plus`
-            readVar `plus`
-            write `plus`
-            assignment
+statement =  statement'
+            `plus` labelStatement
