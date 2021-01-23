@@ -1,4 +1,4 @@
-module Grammar where
+module Grammar.Grammar where
 
 -- data Indentificator = Ident String 
 

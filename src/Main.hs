@@ -1,11 +1,14 @@
 -- Hubert Jaremko - Programowanie funkcyjne 2019/2020
 -- Prosty interpreter Fortranu
 
+module Main where
+
 import System.Environment -- importujemy ten modul po to, aby skorzystac z funkcji getArgs
 import System.IO
 import Prelude
-import Grammar
-import Parsers
+import Grammar.Grammar
+import Parse.Primitive
+import Parse.Statement
 
 parseHelp :: String -> [(Statement, String)] -> [(Statement, String)]
 parseHelp "" results = results
