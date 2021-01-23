@@ -98,9 +98,18 @@ int :: Parser Expr
 int = many digit `bind` \x ->
         result (FloatLiteral (read x))
 
+-- expr :: Parser Expr 
+-- expr = int `bind` \l ->
+--         char '+' `bind` \op ->
+--        int `bind` \r ->
+--         result (Add l r)
+
 expression :: Parser Expr
-expression = float `plus` int `plus`
-    result (FloatLiteral 0)
+expression = float 
+-- expression = expr 
+            -- `plus` float 
+            `plus` int
+            -- `plus` result (FloatLiteral 0)
 
 assignment' :: Parser Statement
 assignment' = identificator `bind` \x ->
@@ -195,6 +204,30 @@ goto' =
 goto :: Parser Statement
 goto = first $ consumeLeadingSpaces goto'
 
+if' :: Parser Statement 
+if' = string "IF" `bind` \x ->
+        spaces `bind` \y ->
+        char '(' `bind` \y ->
+        spaces `bind` \y ->
+        expression `bind` \expr ->
+        spaces `bind` \y ->
+        char ')' `bind` \y ->
+        spaces `bind` \y ->
+        (many digit) `bind` \neg ->
+        spaces `bind` \y ->
+        char ',' `bind` \y ->
+        spaces `bind` \y ->
+        (many digit) `bind` \zero ->
+        spaces `bind` \y ->
+        char ',' `bind` \y ->
+        spaces `bind` \y ->
+        (many digit) `bind` \pos ->
+        spaces `bind` \y ->
+        result (If expr (read neg) (read zero) (read pos))
+
+iff :: Parser Statement 
+iff = first $ consumeLeadingSpaces if'
+        
 statement' :: Parser Statement
 statement' = doLoop 
             `plus` readVar 
@@ -202,6 +235,7 @@ statement' = doLoop
             `plus` write 
             `plus` assignment 
             `plus` goto
+            `plus` iff
 
 statement :: Parser Statement
 statement =  statement'

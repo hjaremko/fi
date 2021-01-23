@@ -38,8 +38,8 @@ isInitialized [] _ = False;
 isInitialized ((Var id val):vs) name = if id == name then True
                                       else isInitialized vs name
 
-evalExpr :: Expr -> Float
-evalExpr (FloatLiteral val) = val
+-- evalExpr :: Expr -> Float
+-- evalExpr (FloatLiteral val) = val
 
 evalAssignment :: State -> String -> Float -> State
 evalAssignment (St vars) name val
@@ -84,23 +84,22 @@ evalOne (Loop (Assignment id (FloatLiteral val)) (FloatLiteral stop) (FloatLiter
         
 evalOne (LabelStmt _ stmt) state jd all = evalOne stmt state jd all
 
--- evalOne (Goto label) state jd code = return state
--- loop :: 
--- loop :: [Statement] -> State -> IO State
--- loop stmst state = do
---     s <- evalOne start state
---     s' <- eval stmts s
---     return s'
 evalGoto :: Label -> JumpData -> [Statement] -> [Statement]
 evalGoto label jd all = drop (getIdx -1) all
     where getIdx = head $ map snd $ filter (\(l,i)-> l == label) jd
     
 eval :: [Statement] -> State -> JumpData -> [Statement] -> IO State
 eval [] s _ _ = return s
+
 eval (Goto label:_) state jd all = do
     s <- eval (evalGoto label jd all)  state jd all
-    return state
-    
+    return s
+
+eval (If expr neg zero pos:_) state jd all 
+ | evalExpr expr < 0 = eval (evalGoto neg jd all) state jd all
+ | evalExpr expr == 0 = eval (evalGoto zero jd all)  state jd all
+ | evalExpr expr > 0 =    eval (evalGoto pos jd all) state jd all
+
 eval (statement:rest) state jd all = do
     r <- evalOne statement state jd all
     eval rest r jd all
