@@ -6,6 +6,7 @@ data Variable = Ident String deriving Show
 type Label = Int
 
 data Expr = FloatLiteral Float
+    | Add Expr Expr
     deriving Show
         
 -- data BooleanExpr = True | False deriving Show
@@ -17,4 +18,5 @@ data Statement = Assignment Variable Expr
     | LabeledStmt Label Statement
     | Loop Statement Expr Expr [Statement]
     | LabelStmt Label Statement
+    | Goto Label
     deriving Show

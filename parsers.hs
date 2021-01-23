@@ -185,6 +185,15 @@ labelStatement = first $ consumeLeadingSpaces
                  statement' `bind` \st ->
                  result (LabelStmt (read x) st)
 
+goto' :: Parser Statement 
+goto' = 
+        string "GOTO" `bind` \x ->
+        spaces `bind` \y ->
+        (many digit) `bind` \label ->
+        result (Goto $ read label)
+
+goto :: Parser Statement
+goto = first $ consumeLeadingSpaces goto'
 
 statement' :: Parser Statement
 statement' = doLoop 
@@ -192,6 +201,7 @@ statement' = doLoop
             `plus` readVar 
             `plus` write 
             `plus` assignment 
+            `plus` goto
 
 statement :: Parser Statement
 statement =  statement'

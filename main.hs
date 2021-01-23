@@ -20,7 +20,7 @@ parse s = map fst (parseHelp s [])
 data Var = Var String Float deriving Show
 data State = St [Var] deriving Show
 -- data State = St [Var] [LabelStmt] deriving Show
-type JumpData =  [(Int, Int)]-- deriving Show
+type JumpData =  [(Label, Int)]-- deriving Show
 
 readJumpData ::[Statement] -> JumpData
 readJumpData sts = filter (\(_,i) -> i /= -1) (map toJumpData (addIndex sts))
@@ -57,40 +57,53 @@ readSt state id = do
     n <- getLine
     return (evalAssignment state id (read n))
 
-evalOne :: Statement -> State -> IO State
-evalOne (Assignment (Ident id) (FloatLiteral val)) state
+evalOne :: Statement -> State -> JumpData -> [Statement] -> IO State
+evalOne (Assignment (Ident id) (FloatLiteral val)) state jd all
     = return (evalAssignment state id val)
-evalOne (PrintExpr expr) state = do
+    
+evalOne (PrintExpr expr) state jd all = do
     print $ evalExpr expr
-    return (state)
-evalOne (PrintVar (Ident id)) state = do
+    return state
+    
+evalOne (PrintVar (Ident id)) state jd all = do
     print $ varValue id state
-    return (state)
-evalOne (Read (Ident id)) state = do
+    return state
+    
+evalOne (Read (Ident id)) state jd all = do
     n <- getLine
     return (evalAssignment state id (read n))
-evalOne (Loop (Assignment id (FloatLiteral val)) (FloatLiteral stop) (FloatLiteral step) stmts) state = do
-    s <- evalOne (Assignment id (FloatLiteral val)) state
+    
+evalOne (Loop (Assignment id (FloatLiteral val)) (FloatLiteral stop) (FloatLiteral step) stmts) state jd all = do
+    s <- evalOne (Assignment id (FloatLiteral val)) state jd all
     if (val < stop) then do
-        s' <- eval stmts s
+        s' <- eval stmts s jd all
         let nextLoop = Loop (Assignment id (FloatLiteral (val + step))) (FloatLiteral stop) (FloatLiteral step) stmts
-        evalOne nextLoop s'
+        evalOne nextLoop s' jd all
     else do 
         return s
-evalOne (LabelStmt _ stmt) state = evalOne stmt state 
+        
+evalOne (LabelStmt _ stmt) state jd all = evalOne stmt state jd all
 
+-- evalOne (Goto label) state jd code = return state
 -- loop :: 
 -- loop :: [Statement] -> State -> IO State
 -- loop stmst state = do
 --     s <- evalOne start state
 --     s' <- eval stmts s
 --     return s'
+evalGoto :: Label -> JumpData -> [Statement] -> [Statement]
+evalGoto label jd all = drop (getIdx -1) all
+    where getIdx = head $ map snd $ filter (\(l,i)-> l == label) jd
     
-eval :: [Statement] -> State -> IO State
-eval [] s = return s
-eval (parseResult:rest) state = do
-    r <- evalOne parseResult state
-    eval rest r
+eval :: [Statement] -> State -> JumpData -> [Statement] -> IO State
+eval [] s _ _ = return s
+eval (Goto label:_) state jd all = do
+    s <- eval (evalGoto label jd all)  state jd all
+    return state
+    
+eval (statement:rest) state jd all = do
+    r <- evalOne statement state jd all
+    eval rest r jd all
 
 main :: IO ()
 main = do
@@ -100,11 +113,10 @@ main = do
   let parsed = parse fileContent
   print parsed
 
---   let jd = readJumpData parsed
---   print jd
+  let jd = readJumpData parsed
+  print jd
   
   let state = St []
---   let jumpData = readJumpData parsed
-  eval parsed state
+  eval parsed state jd parsed
 
   return ()
