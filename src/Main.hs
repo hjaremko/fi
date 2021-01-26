@@ -13,7 +13,7 @@ import Parse.Statement
 parseHelp :: String -> [(Statement, String)] -> [(Statement, String)]
 parseHelp "" results = results
 parseHelp code results = results ++ parseOne code ++ parseHelp (leftover $ parseOne code) results
-    where parseOne str = first statement str
+    where parseOne = first statement
           leftover [] = []
           leftover (x:xs) = snd x
 
@@ -61,18 +61,37 @@ readSt state id = do
     return (evalAssignment state id (read n))
 
 evalOne :: Statement -> State -> JumpData -> [Statement] -> IO State
-evalOne (Assignment (Ident id) (FloatLiteral val)) state jd all
+evalOne (Assignment id (FloatLiteral val)) state jd all
     = return (evalAssignment state id val)
     
-evalOne (PrintExpr expr) state jd all = do
-    print $ evalExpr expr
-    return state
+-- evalOne (PrintExpr expr) state jd all = do
+--     print $ evalExpr expr
+--     return state
     
-evalOne (PrintVar (Ident id)) state jd all = do
-    print $ varValue id state
-    return state
+-- evalOne (PrintVar ( id)) state jd all = do
+--     print $ varValue id state
+--     return state
     
-evalOne (Read (Ident id)) state jd all = do
+evalOne (Print []) state jd all = do
+    putStr "\n"
+    return state
+
+evalOne (Print (Expr e:xs)) state jd all = do
+    putStr $ show $ evalExpr e
+    evalOne (Print xs) state jd all
+    -- return state
+    
+evalOne (Print (PVar id:xs)) state jd all = do
+    putStr $ show $ varValue id state
+    evalOne (Print xs) state jd all
+    -- return state
+
+evalOne (Print (Str s:xs)) state jd all = do
+    putStr s
+    evalOne (Print xs) state jd all
+    -- return state
+
+evalOne (Read ( id)) state jd all = do
     n <- getLine
     return (evalAssignment state id (read n))
     

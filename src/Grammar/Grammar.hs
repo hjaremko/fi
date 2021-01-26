@@ -2,7 +2,7 @@ module Grammar.Grammar where
 
 -- data Indentificator = Ident String 
 
-data Variable = Ident String deriving Show
+type Variable = String
 type Label = Int
 
 evalExpr :: Expr -> Float
@@ -17,9 +17,12 @@ data Expr = FloatLiteral Float
         
 -- data BooleanExpr = True | False deriving Show
 
+data Printable = Expr Expr | PVar Variable | Str String deriving Show
+
 data Statement = Assignment Variable Expr
-    | PrintExpr Expr
-    | PrintVar Variable
+    -- | PrintExpr Expr
+    -- | PrintVar Variable
+    | Print [Printable]
     | Read Variable
     | LabeledStmt Label Statement
     | Loop Statement Expr Expr [Statement]

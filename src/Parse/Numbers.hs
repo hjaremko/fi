@@ -8,10 +8,10 @@ float :: Parser Expr
 float =
   many digit `bind` \x ->
     char '.' `bind` \y ->
-      many digit `bind` \xs ->
+      manyNotEmpty digit `bind` \xs ->
         result (FloatLiteral (read (x ++ [y] ++ xs)))
 
 int :: Parser Expr
 int =
-  many digit `bind` \x ->
+  manyNotEmpty digit `bind` \x ->
     result (FloatLiteral (read x))

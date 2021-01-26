@@ -12,9 +12,9 @@ import Parse.Numbers
 
 expression :: Parser Expr
 expression =
-  float
+  first float
     -- expression = expr
     -- `plus` float
-    `plus` int
+    `plus` first int
 
 -- `plus` result (FloatLiteral 0)

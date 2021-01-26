@@ -57,6 +57,11 @@ many p = plus nonEmpty empty
                      result (x:xs)))
           empty = result []
 
+manyNotEmpty :: Parser a -> Parser [a]
+manyNotEmpty p = p `bind` \x ->
+                many p `bind` \xs ->
+                     result (x:xs)
+
 word :: Parser String
 word = many letter
 

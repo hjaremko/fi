@@ -59,8 +59,6 @@ labelStatement =
 statement' :: Parser Statement
 statement' =
   doLoop
-    `plus` readVar
-    `plus` readVar
     `plus` write
     `plus` assignment
     `plus` goto

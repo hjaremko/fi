@@ -12,7 +12,7 @@ assignment' =
       char '=' `bind` \y ->
         spaces `bind` \z ->
           expression `bind` \xs ->
-            result (Assignment (Ident x) xs)
+            result (Assignment x xs)
 
 assignment :: Parser Statement
 assignment = first $ consumeLeadingSpaces assignment'

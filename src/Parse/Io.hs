@@ -1,31 +1,77 @@
 module Parse.Io where
-import Parse.Primitive
+
 import Grammar.Grammar
 import Parse.Expression
 import Parse.Identifier
+import Parse.Primitive
+
+print' :: Parser Statement
+print' =
+  first $
+    string "WRITE" `bind` \x ->
+      spaces `bind` \y ->
+        printables `bind` \xs ->
+          -- result (Print [xs])
+          result (Print xs)
+
+-- printVar' :: Parser Statement
+-- printVar' =
+--   string "WRITE" `bind` \x ->
+--     spaces `bind` \y ->
+--       identificator `bind` \xs ->
+--         result (PrintVar xs)
+--  `plus` many (consumeIf (== ' '))
+
+-- printables :: Parser [Printable]
+printables :: Parser [Printable]
+printables = 
+  (
+      printable `bind` \p ->
+        spaces `bind` \s ->
+        char ',' `bind` \c ->
+        spaces `bind` \s2 ->
+          printables `bind` \ps ->
+            result (p:ps)
+  )
+  `plus` 
+  (printable `bind` \p->
+  result [p]) 
 
 
-print' :: Parser Statement 
-print' = string "WRITE" `bind` \x ->
-         spaces `bind` \y ->
-         expression `bind` \xs ->
-         result (PrintExpr xs)
+writeString :: Parser Printable
+writeString =
+  char '\"' `bind` \x ->
+    many (consumeIf (/= x)) `bind` \str ->
+      char '\"' `bind` \x ->
+        result (Str str)
 
-printVar' :: Parser Statement 
-printVar' = string "WRITE" `bind` \x ->
-         spaces `bind` \y ->
-         identificator `bind` \xs ->
-         result (PrintVar (Ident xs))
+printable :: Parser Printable
+printable =
+  (first identificator `bind` \id -> result (PVar id))
+    `plus` first writeString
+    `plus` (first expression `bind` \expr -> result (Expr expr))
 
-write :: Parser Statement 
-write = first $ consumeLeadingSpaces printVar' `plus`
-                consumeLeadingSpaces print'
+write :: Parser Statement
+write =
+  first $
+    consumeLeadingSpaces print'
 
-readVar' :: Parser Statement 
-readVar' = string "READ" `bind` \x ->
-         spaces `bind` \y ->
-         identificator `bind` \xs ->
-         result (Read (Ident xs))
+readVar' :: Parser Statement
+readVar' =
+  string "READ" `bind` \x ->
+    spaces `bind` \y ->
+      identificator `bind` \xs ->
+        result (Read xs)
 
-readVar :: Parser Statement 
+readStr' :: Parser Statement
+readStr' =
+  string "READ" `bind` \x ->
+    spaces `bind` \y ->
+      identificator `bind` \xs ->
+        result (Read xs)
+
+-- readArg :: Parser Printable
+-- readArg =
+
+readVar :: Parser Statement
 readVar = first $ consumeLeadingSpaces readVar'
