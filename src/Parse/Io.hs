@@ -37,8 +37,9 @@ writeString =
 
 printable :: Parser Printable
 printable =
-  (first identificator `bind` \id -> result (PVar id))
-    `plus` first writeString
+  -- (first identificator `bind` \id -> result (PVar id))
+    -- `plus` 
+    first writeString
     `plus` (first expression `bind` \expr -> result (Expr expr))
 
 write :: Parser Statement

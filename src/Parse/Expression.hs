@@ -13,11 +13,12 @@ import Parse.Identifier
 
 expression :: Parser Expr
 expression =
-  first float
+  -- first float
     -- expression = expr
     -- `plus` float
-    `plus` first int
-    `plus` first (arithm `bind` \a -> result (Arithm a))
+    -- `plus` first int
+    -- `plus` 
+    first (arithm `bind` \a -> result (Arithm a))
 
 
 -- `plus` result (FloatLiteral 0)
@@ -50,6 +51,7 @@ arithm = many (constSymbol
   `plus` leftParen
   `plus` rightParen
   `plus` ops
+  `plus` sqrt'
   `plus` vari
   )
 
@@ -64,6 +66,10 @@ vari :: Parser Token
 vari = identificator `bind` \i ->
       result (Variable i)
 
+sqrt' :: Parser Token
+sqrt' = string "SQRT" `bind` \i ->
+      result Sqrt
+
 leftParen :: Parser Token
 leftParen = consumeIf ( == '(') `bind` \p ->
             result LeftParen
@@ -74,6 +80,11 @@ rightParen = consumeIf ( == ')') `bind` \p ->
 
 ops :: Parser Token
 ops = plusOp `plus` minusOp `plus` multOp `plus` divOp
+
+-- unaryMinusOp :: Parser [Token] 
+-- unaryMinusOp = (leftParen `plus` ops) `bind` \x ->
+--               char '-' `bind` \m ->
+--                 result [x,UnaryMinus] 
 
 plusOp :: Parser Token
 plusOp = consumeIf ( == '+') `bind` \p ->

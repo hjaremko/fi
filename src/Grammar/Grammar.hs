@@ -12,11 +12,9 @@ data Token
   | Variable String
   | LeftParen
   | RightParen
+  | UnaryMinus
   deriving (Show)
 
--- data Op
---   = LeftParen Int
---   | Plus Int
 priority :: Token -> Int
 priority LeftParen = 0
 priority Plus = 1
@@ -24,6 +22,8 @@ priority Minus = 1
 priority RightParen = 1
 priority Mult = 2
 priority Div = 2
+priority Sqrt = 3
+priority UnaryMinus = 4
 
 toRpn :: [Token] -> [Token] -> [Token] -> [Token]
 toRpn [] out stack = out ++ stack
@@ -95,7 +95,8 @@ data Expr = FloatLiteral Float
         
 -- data BooleanExpr = True | False deriving Show
 
-data Printable = Expr Expr | PVar Variable | Str String deriving Show
+-- data Printable = Expr Expr | PVar Variable | Str String deriving Show
+data Printable = Expr Expr | Str String deriving Show
 
 data Statement = Assignment Variable Expr
     | Print [Printable]
