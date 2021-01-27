@@ -11,18 +11,8 @@ print' =
     string "WRITE" `bind` \x ->
       spaces `bind` \y ->
         printables `bind` \xs ->
-          -- result (Print [xs])
           result (Print xs)
 
--- printVar' :: Parser Statement
--- printVar' =
---   string "WRITE" `bind` \x ->
---     spaces `bind` \y ->
---       identificator `bind` \xs ->
---         result (PrintVar xs)
---  `plus` many (consumeIf (== ' '))
-
--- printables :: Parser [Printable]
 printables :: Parser [Printable]
 printables = 
   (
@@ -56,6 +46,8 @@ write =
   first $
     consumeLeadingSpaces print'
 
+----------------------------------------------------------
+
 readVar' :: Parser Statement
 readVar' =
   string "READ" `bind` \x ->
@@ -69,9 +61,6 @@ readStr' =
     spaces `bind` \y ->
       identificator `bind` \xs ->
         result (Read xs)
-
--- readArg :: Parser Printable
--- readArg =
 
 readVar :: Parser Statement
 readVar = first $ consumeLeadingSpaces readVar'
