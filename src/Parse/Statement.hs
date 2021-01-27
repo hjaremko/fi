@@ -14,7 +14,7 @@ import Parse.Goto
 do' :: Parser Statement 
 do' = string "DO" `bind` \x ->
       spaces `bind` \y -> 
-      assignment `bind` \start ->
+      assignment `plus` labelAssignment `bind` \start ->
       char ',' `bind` \q ->
       spaces `bind` \w -> 
       expression `bind` \stop ->
@@ -23,7 +23,7 @@ do' = string "DO" `bind` \x ->
     --   statement `bind` \stmts ->
       spaces `bind` \s -> 
       string "END DO" `bind` \xs ->
-      result (Loop start stop (FloatLiteral 1) stmts)
+      result (Loop start stop (FloatLiteral 1) (stmts++ [End]))
     --   result (Loop start stop [stmts])
     --   result (Loop start stop [])
     --   result (Loop (Assignment (Ident "aa") (FloatLiteral 1)) (FloatLiteral 1) [])
@@ -31,7 +31,7 @@ do' = string "DO" `bind` \x ->
 stepDo' :: Parser Statement 
 stepDo' = string "DO" `bind` \x ->
       spaces `bind` \y -> 
-      assignment `bind` \start ->
+      assignment `plus` labelAssignment  `bind` \start ->
       char ',' `bind` \q ->
       spaces `bind` \w -> 
       expression `bind` \stop ->
@@ -41,10 +41,22 @@ stepDo' = string "DO" `bind` \x ->
       many statement `bind` \stmts ->
       spaces `bind` \s -> 
       string "END DO" `bind` \xs ->
-      result (Loop start stop step stmts)
+      result (Loop start stop step (stmts ++ [End]))
 
 doLoop :: Parser Statement
 doLoop = first $ consumeLeadingSpaces $ do' `plus` stepDo' 
+
+
+labelAssignment :: Parser Statement
+labelAssignment =
+  -- first $
+    -- consumeLeadingSpaces
+      manyNotEmpty digit
+      `bind` \x ->
+        spaces `bind` \s ->
+          assignment `bind` \st ->
+            result (LabelStmt (read x) st)
+
 
 labelStatement :: Parser Statement
 labelStatement =

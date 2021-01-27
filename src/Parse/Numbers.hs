@@ -6,7 +6,7 @@ import Parse.Primitive
 -- todo: ujemne
 float :: Parser Expr
 float =
-  many digit `bind` \x ->
+  manyNotEmpty digit `bind` \x ->
     char '.' `bind` \y ->
       manyNotEmpty digit `bind` \xs ->
         result (FloatLiteral (read (x ++ [y] ++ xs)))

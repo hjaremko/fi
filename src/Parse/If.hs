@@ -4,6 +4,7 @@ import Grammar.Grammar
 import Parse.Expression
 import Parse.Numbers
 import Parse.Primitive
+import Parse.Identifier
 
 if' :: Parser Statement
 if' =
@@ -11,7 +12,7 @@ if' =
     spaces `bind` \y ->
       char '(' `bind` \y ->
         spaces `bind` \y ->
-          expression `bind` \expr ->
+          (expression `plus` (identificator `bind` \id -> result (VarId id))) `bind` \expr ->
             spaces `bind` \y ->
               char ')' `bind` \y ->
                 spaces `bind` \y ->

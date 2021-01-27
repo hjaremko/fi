@@ -8,7 +8,7 @@ goto' :: Parser Statement
 goto' =
   string "GOTO" `bind` \x ->
     spaces `bind` \y ->
-      many digit `bind` \label ->
+      manyNotEmpty digit `bind` \label ->
         result (Goto $ read label)
 
 goto :: Parser Statement
