@@ -21,7 +21,7 @@ parse :: String -> [Statement]
 parse s = map fst (parseHelp s [])
 
 data Var = Var String Float deriving Show
-data State = St [Var] deriving Show
+type State = [Var]
 -- data State = St [Var] [LabelStmt] deriving Show
 type JumpData =  [(Label, Int)]-- deriving Show
 data Context = Ctx State JumpData [Statement]
@@ -46,13 +46,12 @@ readJumpData sts = filter (\(_,i) -> i /= -1) (concatMap toJumpData (addIndex st
 
 findVarValue :: [Var] -> String -> Float
 findVarValue [] _ = 0;
-findVarValue ((Var id val):vs) name = if id == name then val
+findVarValue (Var id val:vs) name = if id == name then val
                                       else findVarValue vs name
 
 isInitialized :: [Var] -> String -> Bool
 isInitialized [] _ = False;
-isInitialized ((Var id val):vs) name = if id == name then True
-                                      else isInitialized vs name
+isInitialized (Var id val:vs) name = (id == name) || isInitialized vs name
 
 -- evalExpr :: Expr -> Float
 -- evalExpr (FloatLiteral val) = val
@@ -60,6 +59,21 @@ isInitialized ((Var id val):vs) name = if id == name then True
 evalExpr :: Expr -> State -> Float
 evalExpr (FloatLiteral x) _ = x
 evalExpr (VarId i) state = varValue i state
+evalExpr (Arithm tokens) state = 0
+
+-- evalArithmetic :: [Token] -> State -> Float
+-- evalArithmetic tokens state = evalRpn (toRpn tokens [] []) [] state
+
+
+evalRpn :: [Token] -> [Float] -> State -> Float
+evalRpn [] [s] _ = s
+evalRpn (Const v:ops) stack state = evalRpn ops (v:stack) state
+evalRpn (Variable v:ops) stack state = evalRpn ops (varValue v state:stack) state
+evalRpn (Plus:ops) (a:b:stack) state = evalRpn ops ((b + a):stack) state
+evalRpn (Minus:ops) (a:b:stack) state = evalRpn ops ((b - a):stack) state
+evalRpn (Mult:ops) (a:b:stack) state = evalRpn ops ((b * a):stack) state
+evalRpn (Div:ops) (a:b:stack) state = evalRpn ops ((b / a):stack) state
+
 
 evalAssignment :: State -> String -> Float -> State
 evalAssignment (St vars) name val
@@ -78,8 +92,8 @@ readSt state id = do
     return (evalAssignment state id (read n))
 
 evalOne :: Statement -> State -> JumpData -> [Statement] -> IO State
-evalOne (Assignment id (FloatLiteral val)) state jd all
-    = return (evalAssignment state id val)
+evalOne (Assignment id expr) state jd all
+    = return (evalAssignment state id (evalExpr expr state))
     
 evalOne (Print []) state jd all = do
     putStr "\n"
@@ -115,6 +129,8 @@ evalOne (Loop (Assignment id (FloatLiteral val)) (FloatLiteral stop) (FloatLiter
         return s
         
 evalOne (LabelStmt _ stmt) state jd all = evalOne stmt state jd all
+
+-- evalOne (LabelStmt _ stmt) state jd all = evalOne stmt state jd all
 
 evalGoto :: Label -> JumpData -> [Statement] -> [Statement]
 evalGoto label jd all = drop (getIdx -1) all

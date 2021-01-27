@@ -72,6 +72,7 @@ statement' :: Parser Statement
 statement' =
   doLoop
     `plus` write
+    `plus` readVar
     `plus` assignment
     `plus` goto
     `plus` iff

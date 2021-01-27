@@ -25,6 +25,12 @@ natural =
   manyNotEmpty digit `bind` \x ->
     result (read x)
 
+    
+naturalF :: Parser Float
+naturalF =
+  manyNotEmpty digit `bind` \x ->
+    result (read x)
+
 int :: Parser Expr
 int =
   ( natural `bind` \n ->
