@@ -1,7 +1,5 @@
 module Grammar.Grammar where
 
--- data Indentificator = Ident String 
-
 data Token
   = Const Float
   | Plus
@@ -44,8 +42,6 @@ toRpn (op:ops) out (s:stack) =
     let os = popHigherOrEqualPriorityOps out (s:stack) op
     in uncurry (toRpn ops) os
 
-
-
 popHigherOrEqualPriorityOps :: [Token] -> [Token] -> Token -> ([Token], [Token])
 popHigherOrEqualPriorityOps out [] t = (out, [t])
 popHigherOrEqualPriorityOps out (op:stack) t =
@@ -58,44 +54,14 @@ popUntilLeftParen out (LeftParen:stack) = (out, stack)
 popUntilLeftParen out (s:stack) = popUntilLeftParen (out ++ [s]) stack
 
 
--- [Const 12.0,Plus,Variable "a",Mult,LeftParen,Variable "b",Mult,Variable "c",Plus,Variable "d",Div,Variable "e",RightParen]
-
--- [] [Mult, Mult, Mult, Mult, Mult, LeftParen, Mult]
--- [] [Mult, LeftParen, Mult, Plus]
-
--- [Const 2.0,Const 7.0,Plus,Const 3.0,Div,Const 14.0,Const 3.0,Minus,Const 4.0,Mult,Plus,Const 2.0,Div]
-
--- data Var = Var String Float deriving Show
--- data State = St [Var] deriving Show
-
--- evalRpn :: [Token] -> [Float] -> State -> Float
--- evalRpn [] [s] _ = s
--- evalRpn (Const v:ops) stack = evalRpn ops (v:stack)
--- evalRpn (Variable v:ops) stack = evalRpn ops (0:stack)
--- evalRpn (Plus:ops) (a:b:stack) = evalRpn ops ((b + a):stack)
--- evalRpn (Minus:ops) (a:b:stack) = evalRpn ops ((b - a):stack)
--- evalRpn (Mult:ops) (a:b:stack) = evalRpn ops ((b * a):stack)
--- evalRpn (Div:ops) (a:b:stack) = evalRpn ops ((b / a):stack)
-
-
 type Variable = String
 type Label = Int
-
--- evalExpr :: Expr -> Float
--- evalExpr (FloatLiteral x) = x
--- evalExpr (VarId) = 
--- evalExpr (Add e e') = evalExpr e + evalExpr e'
--- evalExpr (Diff e e') = eval e - eval e'
--- evalExpr (Mult e e') = eval e * eval e'
 
 data Expr = FloatLiteral Float
     | VarId Variable
     | Arithm [Token]
     deriving Show
         
--- data BooleanExpr = True | False deriving Show
-
--- data Printable = Expr Expr | PVar Variable | Str String deriving Show
 data Printable = Expr Expr | Str String deriving Show
 
 data Statement = Assignment Variable Expr

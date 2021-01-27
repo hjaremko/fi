@@ -1,5 +1,5 @@
 -- Hubert Jaremko - Programowanie funkcyjne 2019/2020
--- Prosty interpreter Fortranu
+-- Interpreter prostego Fortranu
 
 module Parse.Statement where
 
@@ -20,13 +20,9 @@ do' = string "DO" `bind` \x ->
       expression `bind` \stop ->
       spaces `bind` \s -> 
       many statement `bind` \stmts ->
-    --   statement `bind` \stmts ->
       spaces `bind` \s -> 
       string "END DO" `bind` \xs ->
       result (Loop start stop (FloatLiteral 1) (stmts++ [End]))
-    --   result (Loop start stop [stmts])
-    --   result (Loop start stop [])
-    --   result (Loop (Assignment (Ident "aa") (FloatLiteral 1)) (FloatLiteral 1) [])
       
 stepDo' :: Parser Statement 
 stepDo' = string "DO" `bind` \x ->
@@ -49,8 +45,6 @@ doLoop = first $ consumeLeadingSpaces $ do' `plus` stepDo'
 
 labelAssignment :: Parser Statement
 labelAssignment =
-  -- first $
-    -- consumeLeadingSpaces
       manyNotEmpty digit
       `bind` \x ->
         spaces `bind` \s ->
