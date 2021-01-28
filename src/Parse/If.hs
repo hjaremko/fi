@@ -2,9 +2,9 @@ module Parse.If where
 
 import Grammar.Grammar
 import Parse.Expression
+import Parse.Identifier
 import Parse.Numbers
 import Parse.Primitive
-import Parse.Identifier
 
 if' :: Parser Statement
 if' =
@@ -12,7 +12,7 @@ if' =
     spaces `bind` \y ->
       char '(' `bind` \y ->
         spaces `bind` \y ->
-          (expression `plus` (identificator `bind` \id -> result (VarId id))) `bind` \expr ->
+          expression `bind` \expr ->
             spaces `bind` \y ->
               char ')' `bind` \y ->
                 spaces `bind` \y ->
