@@ -22,7 +22,7 @@ do' = string "DO" `bind` \x ->
       many statement `bind` \stmts ->
       spaces `bind` \s -> 
       string "END DO" `bind` \xs ->
-      result (Loop start stop (FloatLiteral 1) (stmts++ [End]))
+      result (Loop start stop (FloatLiteral 1) (stmts ++ [End]))
       
 stepDo' :: Parser Statement 
 stepDo' = string "DO" `bind` \x ->

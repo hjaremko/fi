@@ -13,8 +13,10 @@ item [] = []
 item (x : xs) = [(x, xs)]
 
 bind :: Parser a -> (a -> Parser b) -> Parser b
-bind parser f input = concat (map (\(parseResult, rest) -> (f parseResult) rest) (parser input))
--- bind parser f input = concatMap (uncurry f) (parser input)
+-- bind parser f input = concat (map (\(parseResult, rest) -> (f parseResult) rest) (parser input))
+-- bind parser f input = concatMap (\(parseResult, rest) -> (f parseResult) rest) (parser input)
+
+bind parser f input = concatMap (uncurry f) (parser input)
 -- bind parser f input = (concatMap . uncurry) f (parser input)
 -- bind parser f input = flip (concatMap . uncurry) (parser input) f
 -- bind parser f input = (flip (concatMap . uncurry) .parser) input f
@@ -29,7 +31,7 @@ consumeIf predicate =
       else zero
 
 plus :: Parser a -> Parser a -> Parser a
-plus p q input = p input ++ q input
+plus parser1 parser2 input = parser1 input ++ parser2 input
 
 -- akceptuje konkretny char
 char :: Char -> Parser Char
@@ -51,18 +53,12 @@ alphanum :: Parser Char
 alphanum = plus letter digit
 
 many :: Parser a -> Parser [a]
-many p = plus nonEmpty empty
+many p = nonEmpty `plus` empty
   where
     nonEmpty =
-      bind
-        p
-        ( \x ->
-            bind
-              (many p)
-              ( \xs ->
-                  result (x : xs)
-              )
-        )
+      p `bind` \x ->
+        many p `bind` \xs ->
+          result (x : xs)
     empty = result []
 
 manyNotEmpty :: Parser a -> Parser [a]
@@ -78,15 +74,9 @@ word = many letter
 string :: String -> Parser String
 string "" = result ""
 string (x : xs) =
-  bind
-    (char x)
-    ( \_ ->
-        bind
-          (string xs)
-          ( \_ ->
-              result (x : xs)
-          )
-    )
+  char x `bind` \_ ->
+    string xs `bind` \_ ->
+      result (x : xs)
 
 first :: Parser a -> Parser a
 first p input = case p input of
@@ -101,7 +91,7 @@ spaces =
     isWhitespace x = (x == ' ') || (x == '\n') || (x == '\t')
 
 consumeLeadingSpaces :: Parser a -> Parser a
-consumeLeadingSpaces p =
+consumeLeadingSpaces parser =
   spaces `bind` \x ->
-    p `bind` \xs ->
+    parser `bind` \xs ->
       result xs

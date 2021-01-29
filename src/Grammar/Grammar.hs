@@ -11,17 +11,29 @@ data Token
   | LeftParen
   | RightParen
   | UnaryMinus
+  | Equals
+  | NotEquals
+  | Less
+  | LessEquals
+  | Greater
+  | GreaterEquals
   deriving (Show)
 
 priority :: Token -> Int
 priority LeftParen = 0
-priority Plus = 1
-priority Minus = 1
-priority RightParen = 1
-priority Mult = 2
-priority Div = 2
-priority Sqrt = 3
-priority UnaryMinus = 4
+priority Equals = 8
+priority NotEquals = 8
+priority Less = 8
+priority LessEquals = 8
+priority Greater = 8
+priority GreaterEquals = 8
+priority Plus = 12
+priority Minus = 12
+priority RightParen = 12
+priority Mult = 13
+priority Div = 13
+priority Sqrt = 14
+priority UnaryMinus = 15
 
 toRpn :: [Token] -> [Token] -> [Token] -> [Token]
 toRpn [] out stack = out ++ stack
@@ -72,5 +84,5 @@ data Statement = Assignment Variable Expr
     | LabelStmt Label Statement
     | Goto Label
     | If Expr Label Label Label
-    | End
+    | End 
     deriving Show

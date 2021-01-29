@@ -17,6 +17,7 @@ arithm =
         `plus` ops
         `plus` sqrt'
         `plus` vari
+        `plus` boolOps
     )
 
 vari :: Parser Token
@@ -67,3 +68,42 @@ constSymbol =
   first (float' `plus` naturalF)
     `bind` \v ->
       result (Const v)
+
+eqOp :: Parser Token
+eqOp =
+  string ".EQ." `bind` \p ->
+    result Equals
+
+neOp :: Parser Token
+neOp =
+  string ".NE." `bind` \p ->
+    result Equals
+
+ltOp :: Parser Token
+ltOp =
+  string ".LT." `bind` \p ->
+    result Equals
+
+leOp :: Parser Token
+leOp =
+  string ".LE." `bind` \p ->
+    result Equals
+
+gtOp :: Parser Token
+gtOp =
+  string ".GT." `bind` \p ->
+    result Equals
+
+geOp :: Parser Token
+geOp =
+  string ".GE." `bind` \p ->
+    result Equals
+
+boolOps :: Parser Token
+boolOps =
+  eqOp
+    `plus` neOp
+    `plus` ltOp
+    `plus` leOp
+    `plus` gtOp
+    `plus` geOp

@@ -66,6 +66,15 @@ evalRpn (Minus : ops) (a : b : stack) state = evalRpn ops ((b - a) : stack) stat
 evalRpn (Mult : ops) (a : b : stack) state = evalRpn ops ((b * a) : stack) state
 evalRpn (Div : ops) (a : b : stack) state = evalRpn ops ((b / a) : stack) state
 evalRpn (Sqrt : ops) (a : stack) state = evalRpn ops (sqrt a : stack) state
+evalRpn (Equals : ops) (a : b : stack) state = evalRpn ops (boolToFloat (b == a) : stack) state
+evalRpn (NotEquals : ops) (a : b : stack) state = evalRpn ops (boolToFloat (b /= a) : stack) state
+evalRpn (Less : ops) (a : b : stack) state = evalRpn ops (boolToFloat (b < a) : stack) state
+evalRpn (LessEquals : ops) (a : b : stack) state = evalRpn ops (boolToFloat (b <= a) : stack) state
+evalRpn (Greater : ops) (a : b : stack) state = evalRpn ops (boolToFloat (b > a) : stack) state
+evalRpn (GreaterEquals : ops) (a : b : stack) state = evalRpn ops (boolToFloat (b >= a) : stack) state
+
+boolToFloat :: Bool -> Float
+boolToFloat op = if op then 1.0 else 0.0
 
 evalAssignment :: State -> String -> Float -> State
 evalAssignment vars name val =
@@ -136,5 +145,7 @@ main = do
   let jd = readJumpData allStatements
   let ctx = ([], jd, allStatements)
 
+  print allStatements
+  print jd
   eval parsed ctx
   return ()
