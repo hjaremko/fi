@@ -6,19 +6,39 @@ import Parse.Numbers
 import Parse.Primitive
 
 expression :: Parser Expr
-expression = arithm `bind` \a -> result (Arithm a)
+expression = arithm `bind` \a -> result (Arithm (removeSpaceToken a))
+
+removeSpaceToken :: [Token] -> [Token]
+removeSpaceToken = filter (not . isSpaceToken)
+
+isSpaceToken :: Token -> Bool
+isSpaceToken Space = True
+isSpaceToken _ = False
 
 arithm :: Parser [Token]
-arithm =
-  many
-    ( constSymbol
-        `plus` leftParen
-        `plus` rightParen
-        `plus` ops
-        `plus` sqrt'
-        `plus` vari
-        `plus` boolOps
-    )
+arithm = many arithmSymbol
+
+arithmSymbol :: Parser Token
+arithmSymbol =
+  constSymbol
+    `plus` leftParen
+    `plus` rightParen
+    `plus` ops
+    `plus` sqrt'
+    `plus` vari
+    `plus` boolOps
+    `plus` space
+
+space :: Parser Token
+space = char ' ' `bind` \_ -> result Space
+
+-- many (char ' ') `bind` \_ -> zero
+
+-- consumeLeadingSpaces' :: Parser a -> Parser a
+-- consumeLeadingSpaces' parser =
+--   spaces' `bind` \x ->
+--     parser `bind` \xs ->
+--       result xs
 
 vari :: Parser Token
 vari =
@@ -32,12 +52,12 @@ sqrt' =
 
 leftParen :: Parser Token
 leftParen =
-  consumeIf (== '(') `bind` \p ->
+  char '(' `bind` \p ->
     result LeftParen
 
 rightParen :: Parser Token
 rightParen =
-  consumeIf (== ')') `bind` \p ->
+  char ')' `bind` \p ->
     result RightParen
 
 ops :: Parser Token
@@ -45,27 +65,27 @@ ops = plusOp `plus` minusOp `plus` multOp `plus` divOp
 
 plusOp :: Parser Token
 plusOp =
-  consumeIf (== '+') `bind` \p ->
+  char '+' `bind` \p ->
     result Plus
 
 minusOp :: Parser Token
 minusOp =
-  consumeIf (== '-') `bind` \p ->
+  char '-' `bind` \p ->
     result Minus
 
 multOp :: Parser Token
 multOp =
-  consumeIf (== '*') `bind` \p ->
+  char '*' `bind` \p ->
     result Mult
 
 divOp :: Parser Token
 divOp =
-  consumeIf (== '/') `bind` \p ->
+  char '/' `bind` \p ->
     result Div
 
 constSymbol :: Parser Token
 constSymbol =
-  first (float' `plus` naturalF)
+  (float' `plus` naturalF)
     `bind` \v ->
       result (Const v)
 
@@ -77,27 +97,27 @@ eqOp =
 neOp :: Parser Token
 neOp =
   string ".NE." `bind` \p ->
-    result Equals
+    result NotEquals
 
 ltOp :: Parser Token
 ltOp =
   string ".LT." `bind` \p ->
-    result Equals
+    result Less
 
 leOp :: Parser Token
 leOp =
   string ".LE." `bind` \p ->
-    result Equals
+    result LessEquals
 
 gtOp :: Parser Token
 gtOp =
   string ".GT." `bind` \p ->
-    result Equals
+    result Greater
 
 geOp :: Parser Token
 geOp =
   string ".GE." `bind` \p ->
-    result Equals
+    result GreaterEquals
 
 boolOps :: Parser Token
 boolOps =

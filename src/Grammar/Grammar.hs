@@ -17,6 +17,7 @@ data Token
   | LessEquals
   | Greater
   | GreaterEquals
+  | Space
   deriving (Show)
 
 priority :: Token -> Int
