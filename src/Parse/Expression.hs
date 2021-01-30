@@ -1,6 +1,10 @@
+-- Hubert Jaremko - Programowanie funkcyjne 2019/2020
+-- Interpreter prostego Fortranu
+
 module Parse.Expression where
 
-import Grammar.Grammar
+import Grammar.Expression
+import Grammar.Statement
 import Parse.Identifier
 import Parse.Numbers
 import Parse.Primitive
@@ -33,7 +37,6 @@ arithmSymbol =
   constSymbol
     `plus` leftParen
     `plus` rightParen
-    -- `plus` unaryMinus
     `plus` ops
     `plus` sqrt'
     `plus` vari

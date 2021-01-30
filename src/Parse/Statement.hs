@@ -3,7 +3,7 @@
 
 module Parse.Statement where
 
-import Grammar.Grammar
+import Grammar.Statement
 import Parse.Assignment
 import Parse.Expression
 import Parse.Goto

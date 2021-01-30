@@ -1,6 +1,9 @@
+-- Hubert Jaremko - Programowanie funkcyjne 2019/2020
+-- Interpreter prostego Fortranu
+
 module Parse.Goto where
 
-import Grammar.Grammar
+import Grammar.Statement
 import Parse.Numbers
 import Parse.Primitive
 

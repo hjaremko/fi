@@ -1,6 +1,8 @@
+-- Hubert Jaremko - Programowanie funkcyjne 2019/2020
+-- Interpreter prostego Fortranu
 module Parse.Numbers where
 
-import Grammar.Grammar (Expr (FloatLiteral))
+import Grammar.Statement
 import Parse.Primitive
 
 float' :: Parser Float

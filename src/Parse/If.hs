@@ -1,6 +1,8 @@
+-- Hubert Jaremko - Programowanie funkcyjne 2019/2020
+-- Interpreter prostego Fortranu
 module Parse.If where
 
-import Grammar.Grammar
+import Grammar.Statement
 import Parse.Expression
 import Parse.Identifier
 import Parse.Numbers
