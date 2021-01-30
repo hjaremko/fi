@@ -18,7 +18,8 @@ any' [] = []
 any' (x : xs) = [(x, xs)]
 
 -- Funkcja 'bind'
---
+-- Laczy parsery ze soba, np (digit `bind` \d -> letter) stworzy parser ktory akceptuje dokladnie
+-- jedna cyfre i jedna litere
 bind :: Parser a -> (a -> Parser b) -> Parser b
 -- bind parser f input = concat (map (\(parseResult, rest) -> (f parseResult) rest) (parser input))
 -- bind parser f input = concatMap (\(parseResult, rest) -> (f parseResult) rest) (parser input)
