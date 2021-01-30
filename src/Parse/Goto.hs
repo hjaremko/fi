@@ -9,10 +9,10 @@ import Parse.Primitive
 
 goto' :: Parser Statement
 goto' =
-  string "GOTO" `bind` \x ->
-    spaces `bind` \y ->
+  string "GOTO" `bind` \_ ->
+    whitespaces `bind` \_ ->
       manyNotEmpty digit `bind` \label ->
-        result (Goto $ read label)
+        result (Goto (read label))
 
 goto :: Parser Statement
 goto = first $ consumeLeadingSpaces goto'

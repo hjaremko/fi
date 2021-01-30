@@ -3,31 +3,30 @@
 
 module Eval.Eval where
 
-import Grammar.Statement
 import Eval.Context
 import Eval.Rpn
+import Grammar.Statement
 
 isInitialized :: [Var] -> String -> Bool
 isInitialized [] _ = False
 isInitialized (Var id val : vs) name = (id == name) || isInitialized vs name
+
+evalAssignment :: State -> String -> Float -> State
+evalAssignment vars name val =
+  if isInitialized vars name
+    then changeValue
+    else addNewVariable
+  where
+    changeValue = map (\(Var id v) -> if id == name then Var id val else Var id v) vars
+    addNewVariable = Var name val : vars
 
 evalExpr :: Expr -> State -> Float
 evalExpr (FloatLiteral x) _ = x
 evalExpr (VarId i) state = varValue i state
 evalExpr (Arithm tokens) state = evalRpn (toRpn tokens [] []) [] state
 
-evalAssignment :: State -> String -> Float -> State
-evalAssignment vars name val =
-  if isInitialized vars name
-    then map (\(Var id v) -> if id == name then Var id val else Var id v) vars
-    else Var name val : vars
-
-readSt :: State -> String -> IO State
-readSt state id = evalAssignment state id . read <$> getLine
-
 evalOne :: Statement -> Context -> IO State
-evalOne (Assignment id expr) (state, jd, all) =
-  return (evalAssignment state id (evalExpr expr state))
+evalOne (Assignment varName expr) (state, jd, all) = return (evalAssignment state varName (evalExpr expr state))
 evalOne (Print []) (state, _, _) = do
   putStr "\n"
   return state
@@ -37,9 +36,8 @@ evalOne (Print (Expr e : xs)) (state, jd, all) = do
 evalOne (Print (Str s : xs)) ctx = do
   putStr s
   evalOne (Print xs) ctx
-evalOne (Read id) (state, jd, all) =
-  evalAssignment state id . read <$> getLine
-evalOne (Loop init stopExpr stepExpr) ctx = evalOne init ctx
+evalOne (Read varName) (state, jd, all) = evalAssignment state varName . read <$> getLine
+evalOne (Loop init _ _) ctx = evalOne init ctx
 evalOne (LabelStmt _ stmt) ctx = evalOne stmt ctx
 
 evalGoto :: Label -> JumpData -> [Statement] -> [Statement]
@@ -61,10 +59,12 @@ eval (LabelStmt label Continue : rest) (state, jd, all) = do
   if val' < stop
     then eval (drop (getIdx label jd all) all) (s', jd, all)
     else eval rest (s', jd, all)
+
 eval (If expr neg zero pos : _) (state, jd, all)
   | evalExpr expr state < 0 = eval (evalGoto neg jd all) (state, jd, all)
   | evalExpr expr state == 0 = eval (evalGoto zero jd all) (state, jd, all)
   | evalExpr expr state > 0 = eval (evalGoto pos jd all) (state, jd, all)
+
 eval (statement : rest) (state, jd, all) = do
   r <- evalOne statement (state, jd, all)
   eval rest (r, jd, all)

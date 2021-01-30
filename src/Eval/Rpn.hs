@@ -3,8 +3,8 @@
 
 module Eval.Rpn where
 
-import Grammar.Expression
 import Eval.Context
+import Grammar.Expression
 
 priority :: Token -> Int
 priority LeftParen = 0
@@ -24,33 +24,30 @@ priority UnaryMinus = 15
 
 toRpn :: [Token] -> [Token] -> [Token] -> [Token]
 toRpn [] out stack = out ++ stack
-toRpn (Const v:xs) out stack = toRpn xs (out ++ [Const v]) stack
-toRpn (Variable i:xs) out stack = toRpn xs (out ++ [Variable i]) stack
-toRpn (LeftParen:xs) out stack =  toRpn xs out (LeftParen:stack)
-toRpn (RightParen:xs) out stack =
+toRpn (Const v : xs) out stack = toRpn xs (out ++ [Const v]) stack
+toRpn (Variable i : xs) out stack = toRpn xs (out ++ [Variable i]) stack
+toRpn (LeftParen : xs) out stack = toRpn xs out (LeftParen : stack)
+toRpn (RightParen : xs) out stack =
   let os = popUntilLeftParen out stack
-  in uncurry (toRpn xs) os
-
-toRpn (op:ops) out [] = 
-    toRpn ops out [op]
-
-toRpn (op:ops) out (s:stack) = 
-  if priority op > priority s then
-    toRpn ops out (op:s:stack)
-  else 
-    let os = popHigherOrEqualPriorityOps out (s:stack) op
-    in uncurry (toRpn ops) os
+   in uncurry (toRpn xs) os
+toRpn (op : ops) out [] = toRpn ops out [op]
+toRpn (op : ops) out (s : stack) =
+  if priority op > priority s
+    then toRpn ops out (op : s : stack)
+    else
+      let os = popHigherOrEqualPriorityOps out (s : stack) op
+       in uncurry (toRpn ops) os
 
 popHigherOrEqualPriorityOps :: [Token] -> [Token] -> Token -> ([Token], [Token])
 popHigherOrEqualPriorityOps out [] t = (out, [t])
-popHigherOrEqualPriorityOps out (op:stack) t =
-  if priority op >= priority t then
-    popHigherOrEqualPriorityOps (out ++ [op]) stack t
-  else (out, t:op:stack)
+popHigherOrEqualPriorityOps out (op : stack) t =
+  if priority op >= priority t
+    then popHigherOrEqualPriorityOps (out ++ [op]) stack t
+    else (out, t : op : stack)
 
 popUntilLeftParen :: [Token] -> [Token] -> ([Token], [Token])
-popUntilLeftParen out (LeftParen:stack) = (out, stack)
-popUntilLeftParen out (s:stack) = popUntilLeftParen (out ++ [s]) stack
+popUntilLeftParen out (LeftParen : stack) = (out, stack)
+popUntilLeftParen out (s : stack) = popUntilLeftParen (out ++ [s]) stack
 
 evalRpn :: [Token] -> [Float] -> State -> Float
 evalRpn [] [s] _ = s

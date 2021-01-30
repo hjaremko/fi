@@ -6,13 +6,9 @@ import Grammar.Statement
 import Parse.Primitive
 import Parse.Statement
 
-parseHelp :: String -> [(Statement, String)] -> [(Statement, String)]
-parseHelp "" results = results
-parseHelp code results = results ++ parseOne code ++ parseHelp (leftover $ parseOne code) results
-  where
-    parseOne = first statement
-    leftover [] = []
-    leftover (x : xs) = snd x
-
 parse :: String -> [Statement]
-parse s = map fst (parseHelp s [])
+-- parse code = fst (head (many statement code))
+-- parse code = fst (head ((many statement) code))
+-- parse code = fst ((head .(many statement)) code)
+-- parse code = (fst . head . (many statement)) code
+parse = fst . head . many statement

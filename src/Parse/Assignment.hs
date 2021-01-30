@@ -10,12 +10,12 @@ import Parse.Primitive
 
 assignment' :: Parser Statement
 assignment' =
-  identificator `bind` \x ->
-    spaces `bind` \z ->
-      char '=' `bind` \y ->
-        spaces `bind` \z ->
-          expression `bind` \xs ->
-            result (Assignment x xs)
+  identifier `bind` \id ->
+    whitespaces `bind` \_ ->
+      char '=' `bind` \_ ->
+        whitespaces `bind` \_ ->
+          expression `bind` \expr ->
+            result (Assignment id expr)
 
 assignment :: Parser Statement
 assignment = first $ consumeLeadingSpaces assignment'

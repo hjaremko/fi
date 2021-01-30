@@ -5,8 +5,9 @@ module Parse.Identifier where
 
 import Parse.Primitive
 
-identificator :: Parser String
-identificator =
+-- Wszystkie alfanumeryczne, ale zaczynajace sie od litery
+identifier :: Parser String
+identifier =
   letter `bind` \x ->
     many alphanum `bind` \xs ->
       result (x : xs)

@@ -10,24 +10,24 @@ import Parse.Primitive
 
 if' :: Parser Statement
 if' =
-  string "IF" `bind` \x ->
-    spaces `bind` \y ->
-      char '(' `bind` \y ->
-        spaces `bind` \y ->
+  string "IF" `bind` \_ ->
+    whitespaces `bind` \_ ->
+      char '(' `bind` \_ ->
+        whitespaces `bind` \_ ->
           expression `bind` \expr ->
-            spaces `bind` \y ->
-              char ')' `bind` \y ->
-                spaces `bind` \y ->
+            whitespaces `bind` \_ ->
+              char ')' `bind` \_ ->
+                whitespaces `bind` \_ ->
                   many digit `bind` \neg ->
-                    spaces `bind` \y ->
-                      char ',' `bind` \y ->
-                        spaces `bind` \y ->
+                    whitespaces `bind` \_ ->
+                      char ',' `bind` \_ ->
+                        whitespaces `bind` \_ ->
                           many digit `bind` \zero ->
-                            spaces `bind` \y ->
-                              char ',' `bind` \y ->
-                                spaces `bind` \y ->
+                            whitespaces `bind` \_ ->
+                              char ',' `bind` \_ ->
+                                whitespaces `bind` \_ ->
                                   many digit `bind` \pos ->
-                                    spaces `bind` \y ->
+                                    whitespaces `bind` \_ ->
                                       result (If expr (read neg) (read zero) (read pos))
 
 iff :: Parser Statement

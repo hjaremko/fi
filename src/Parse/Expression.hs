@@ -18,10 +18,10 @@ removeSpaceToken = filter (not . isSpaceToken)
 detectUnaryMinuses :: [Token] -> [Token]
 detectUnaryMinuses [] = []
 detectUnaryMinuses [x] = [x]
-detectUnaryMinuses (Minus:Const v : xs) = [UnaryMinus, Const v] ++ detectUnaryMinuses xs
-detectUnaryMinuses (Minus:Variable v : xs) = [UnaryMinus, Variable v] ++ detectUnaryMinuses xs
-detectUnaryMinuses (Const v : Minus: xs) = [Const v, Minus] ++ detectUnaryMinuses xs
-detectUnaryMinuses (Variable v : Minus: xs) = [Variable v, Minus] ++ detectUnaryMinuses xs
+detectUnaryMinuses (Minus : Const v : xs) = [UnaryMinus, Const v] ++ detectUnaryMinuses xs
+detectUnaryMinuses (Minus : Variable v : xs) = [UnaryMinus, Variable v] ++ detectUnaryMinuses xs
+detectUnaryMinuses (Const v : Minus : xs) = [Const v, Minus] ++ detectUnaryMinuses xs
+detectUnaryMinuses (Variable v : Minus : xs) = [Variable v, Minus] ++ detectUnaryMinuses xs
 detectUnaryMinuses (op1 : Minus : xs) = [op1, UnaryMinus] ++ detectUnaryMinuses xs
 detectUnaryMinuses (lhs : op : xs) = [lhs, op] ++ detectUnaryMinuses xs
 
@@ -35,101 +35,101 @@ arithm = many arithmSymbol
 arithmSymbol :: Parser Token
 arithmSymbol =
   constSymbol
-    `plus` leftParen
-    `plus` rightParen
-    `plus` ops
-    `plus` sqrt'
-    `plus` vari
-    `plus` boolOps
-    `plus` space
+    `or'` leftParen
+    `or'` rightParen
+    `or'` ops
+    `or'` sqrt'
+    `or'` vari
+    `or'` boolOps
+    `or'` space
 
 space :: Parser Token
 space = char ' ' `bind` \_ -> result Space
 
 vari :: Parser Token
 vari =
-  identificator `bind` \i ->
+  identifier `bind` \i ->
     result (Variable i)
 
 sqrt' :: Parser Token
 sqrt' =
-  string "SQRT" `bind` \i ->
+  string "SQRT" `bind` \_ ->
     result Sqrt
 
 leftParen :: Parser Token
 leftParen =
-  char '(' `bind` \p ->
+  char '(' `bind` \_ ->
     result LeftParen
 
 rightParen :: Parser Token
 rightParen =
-  char ')' `bind` \p ->
+  char ')' `bind` \_ ->
     result RightParen
 
 ops :: Parser Token
-ops = plusOp `plus` minusOp `plus` multOp `plus` divOp
+ops = plusOp `or'` minusOp `or'` multOp `or'` divOp
 
 plusOp :: Parser Token
 plusOp =
-  char '+' `bind` \p ->
+  char '+' `bind` \_ ->
     result Plus
 
 minusOp :: Parser Token
 minusOp =
-  char '-' `bind` \p ->
+  char '-' `bind` \_ ->
     result Minus
 
 multOp :: Parser Token
 multOp =
-  char '*' `bind` \p ->
+  char '*' `bind` \_ ->
     result Mult
 
 divOp :: Parser Token
 divOp =
-  char '/' `bind` \p ->
+  char '/' `bind` \_ ->
     result Div
 
 constSymbol :: Parser Token
 constSymbol =
-  (float' `plus` naturalF)
+  (float' `or'` naturalAsFloat)
     `bind` \v ->
       result (Const v)
 
 eqOp :: Parser Token
 eqOp =
-  string ".EQ." `bind` \p ->
+  string ".EQ." `bind` \_ ->
     result Equals
 
 neOp :: Parser Token
 neOp =
-  string ".NE." `bind` \p ->
+  string ".NE." `bind` \_ ->
     result NotEquals
 
 ltOp :: Parser Token
 ltOp =
-  string ".LT." `bind` \p ->
+  string ".LT." `bind` \_ ->
     result Less
 
 leOp :: Parser Token
 leOp =
-  string ".LE." `bind` \p ->
+  string ".LE." `bind` \_ ->
     result LessEquals
 
 gtOp :: Parser Token
 gtOp =
-  string ".GT." `bind` \p ->
+  string ".GT." `bind` \_ ->
     result Greater
 
 geOp :: Parser Token
 geOp =
-  string ".GE." `bind` \p ->
+  string ".GE." `bind` \_ ->
     result GreaterEquals
 
 boolOps :: Parser Token
 boolOps =
   eqOp
-    `plus` neOp
-    `plus` ltOp
-    `plus` leOp
-    `plus` gtOp
-    `plus` geOp
+    `or'` neOp
+    `or'` ltOp
+    `or'` leOp
+    `or'` gtOp
+    `or'` geOp
