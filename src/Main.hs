@@ -61,6 +61,7 @@ evalRpn :: [Token] -> [Float] -> State -> Float
 evalRpn [] [s] _ = s
 evalRpn (Const v : ops) stack state = evalRpn ops (v : stack) state
 evalRpn (Variable v : ops) stack state = evalRpn ops (varValue v state : stack) state
+evalRpn (UnaryMinus : ops) (a : stack) state = evalRpn ops (-a : stack) state
 evalRpn (Plus : ops) (a : b : stack) state = evalRpn ops ((b + a) : stack) state
 evalRpn (Minus : ops) (a : b : stack) state = evalRpn ops ((b - a) : stack) state
 evalRpn (Mult : ops) (a : b : stack) state = evalRpn ops ((b * a) : stack) state

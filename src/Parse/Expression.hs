@@ -6,10 +6,20 @@ import Parse.Numbers
 import Parse.Primitive
 
 expression :: Parser Expr
-expression = arithm `bind` \a -> result (Arithm (removeSpaceToken a))
+expression = arithm `bind` \a -> result (Arithm (detectUnaryMinuses (removeSpaceToken a)))
 
 removeSpaceToken :: [Token] -> [Token]
 removeSpaceToken = filter (not . isSpaceToken)
+
+detectUnaryMinuses :: [Token] -> [Token]
+detectUnaryMinuses [] = []
+detectUnaryMinuses [x] = [x]
+detectUnaryMinuses (Minus:Const v : xs) = [UnaryMinus, Const v] ++ detectUnaryMinuses xs
+detectUnaryMinuses (Minus:Variable v : xs) = [UnaryMinus, Variable v] ++ detectUnaryMinuses xs
+detectUnaryMinuses (Const v : Minus: xs) = [Const v, Minus] ++ detectUnaryMinuses xs
+detectUnaryMinuses (Variable v : Minus: xs) = [Variable v, Minus] ++ detectUnaryMinuses xs
+detectUnaryMinuses (op1 : Minus : xs) = [op1, UnaryMinus] ++ detectUnaryMinuses xs
+detectUnaryMinuses (lhs : op : xs) = [lhs, op] ++ detectUnaryMinuses xs
 
 isSpaceToken :: Token -> Bool
 isSpaceToken Space = True
@@ -23,6 +33,7 @@ arithmSymbol =
   constSymbol
     `plus` leftParen
     `plus` rightParen
+    -- `plus` unaryMinus
     `plus` ops
     `plus` sqrt'
     `plus` vari
@@ -31,14 +42,6 @@ arithmSymbol =
 
 space :: Parser Token
 space = char ' ' `bind` \_ -> result Space
-
--- many (char ' ') `bind` \_ -> zero
-
--- consumeLeadingSpaces' :: Parser a -> Parser a
--- consumeLeadingSpaces' parser =
---   spaces' `bind` \x ->
---     parser `bind` \xs ->
---       result xs
 
 vari :: Parser Token
 vari =
