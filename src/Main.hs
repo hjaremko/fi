@@ -56,7 +56,7 @@ evalRpn :: [Token] -> [Float] -> State -> Float
 evalRpn [] [s] _ = s
 evalRpn (Const v : ops) stack state = evalRpn ops (v : stack) state
 evalRpn (Variable v : ops) stack state = evalRpn ops (varValue v state : stack) state
-evalRpn (UnaryMinus : ops) (a : stack) state = evalRpn ops (-a : stack) state
+evalRpn (UnaryMinus : ops) (a : stack) state = evalRpn ops (- a : stack) state
 evalRpn (Plus : ops) (a : b : stack) state = evalRpn ops ((b + a) : stack) state
 evalRpn (Minus : ops) (a : b : stack) state = evalRpn ops ((b - a) : stack) state
 evalRpn (Mult : ops) (a : b : stack) state = evalRpn ops ((b * a) : stack) state
@@ -98,39 +98,31 @@ evalOne (Print (Str s : xs)) ctx = do
   evalOne (Print xs) ctx
 evalOne (Read id) (state, jd, all) =
   evalAssignment state id . read <$> getLine
-evalOne (Loop (Assignment id assignExpr) stopExpr stepExpr) (state, jd, all) = return state
+evalOne (Loop init stopExpr stepExpr) ctx = evalOne init ctx
 evalOne (LabelStmt _ stmt) ctx = evalOne stmt ctx
 
 evalGoto :: Label -> JumpData -> [Statement] -> [Statement]
-evalGoto label jd = drop (getIdx -1)
-  where
-    getIdx = head . map snd $ filter (\(l, i) -> l == label) jd
+evalGoto label jd all = drop (getIdx label jd all -1) all
 
-getStatement :: Label -> JumpData -> [Statement] -> Statement
-getStatement label jd statements = statements !! (getIdx -1)
-  where
-    getIdx = head . map snd $ filter (\(l, i) -> l == label) jd
+getIdx :: Label -> JumpData -> [Statement] -> Int
+getIdx label jd all = head $ map snd (filter (\x -> label == fst x) jd)
 
 eval :: [Statement] -> Context -> IO State
 eval [] (s, _, _) = return s
 eval (Goto label : _) (state, jd, all) =
   eval (evalGoto label jd all) (state, jd, all)
-
-eval (LabelStmt label Continue: rest) (state, jd, all) = do
-  let (LabelStmt _ (Loop (Assignment itName assignExpr) stopE stepE)) = getStatement label jd all
+eval (LabelStmt label Continue : rest) (state, jd, all) = do
+  let (LabelStmt _ (Loop (Assignment itName assignExpr) stopE stepE)) = all !! (getIdx label jd all - 1)
   let val = varValue itName state
   let stop = evalExpr stopE state
   let step = evalExpr stepE state
-  s' <- evalOne (Assignment itName (FloatLiteral (val + step)) ) (state, jd, all)
+  s' <- evalOne (Assignment itName (FloatLiteral (val + step))) (state, jd, all)
 
   let val' = varValue itName s'
 
-  if val' < stop then
-    eval (evalGoto label jd all) (s', jd, all)
-  else do
-    s'' <- evalOne (Assignment itName assignExpr) (s', jd, all)
-    eval rest (s'', jd, all)
-  
+  if val' < stop
+    then eval (drop (getIdx label jd all) all) (s', jd, all)
+    else eval rest (s', jd, all)
 eval (If expr neg zero pos : _) (state, jd, all)
   | evalExpr expr state < 0 = eval (evalGoto neg jd all) (state, jd, all)
   | evalExpr expr state == 0 = eval (evalGoto zero jd all) (state, jd, all)
