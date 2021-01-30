@@ -29,11 +29,6 @@ type JumpData = [(Label, Int)]
 
 type Context = (State, JumpData, [Statement])
 
-concatInnerStatements :: [Statement] -> [Statement]
-concatInnerStatements [] = []
-concatInnerStatements (Loop s _ _ ss : xs) = s : concatInnerStatements ss ++ concatInnerStatements xs
-concatInnerStatements (x : xs) = x : concatInnerStatements xs
-
 readJumpData :: [Statement] -> JumpData
 readJumpData sts = filter (\(_, i) -> i /= -1) (concatMap toJumpData (addIndex sts))
   where
@@ -103,19 +98,7 @@ evalOne (Print (Str s : xs)) ctx = do
   evalOne (Print xs) ctx
 evalOne (Read id) (state, jd, all) =
   evalAssignment state id . read <$> getLine
-evalOne (Loop (LabelStmt _ assign) stop step stmts) ctx =
-  evalOne (Loop assign stop step stmts) ctx
-evalOne (Loop (Assignment id assignExpr) stopExpr stepExpr stmts) (state, jd, all) = do
-  let val = evalExpr assignExpr state
-  let stop = evalExpr stopExpr state
-  let step = evalExpr stepExpr state
-  s <- evalOne (Assignment id (FloatLiteral val)) (state, jd, all)
-  if val < stop
-    then do
-      s' <- eval stmts (s, jd, all)
-      let nextLoop = Loop (Assignment id (FloatLiteral (val + step))) (FloatLiteral stop) (FloatLiteral step) stmts
-      evalOne nextLoop (s', jd, all)
-    else return s
+evalOne (Loop (Assignment id assignExpr) stopExpr stepExpr) (state, jd, all) = return state
 evalOne (LabelStmt _ stmt) ctx = evalOne stmt ctx
 
 evalGoto :: Label -> JumpData -> [Statement] -> [Statement]
@@ -123,11 +106,31 @@ evalGoto label jd = drop (getIdx -1)
   where
     getIdx = head . map snd $ filter (\(l, i) -> l == label) jd
 
+getStatement :: Label -> JumpData -> [Statement] -> Statement
+getStatement label jd statements = statements !! (getIdx -1)
+  where
+    getIdx = head . map snd $ filter (\(l, i) -> l == label) jd
+
 eval :: [Statement] -> Context -> IO State
 eval [] (s, _, _) = return s
-eval (End : _) (s, _, _) = return s
 eval (Goto label : _) (state, jd, all) =
   eval (evalGoto label jd all) (state, jd, all)
+
+eval (LabelStmt label Continue: rest) (state, jd, all) = do
+  let (LabelStmt _ (Loop (Assignment itName assignExpr) stopE stepE)) = getStatement label jd all
+  let val = varValue itName state
+  let stop = evalExpr stopE state
+  let step = evalExpr stepE state
+  s' <- evalOne (Assignment itName (FloatLiteral (val + step)) ) (state, jd, all)
+
+  let val' = varValue itName s'
+
+  if val' < stop then
+    eval (evalGoto label jd all) (s', jd, all)
+  else do
+    s'' <- evalOne (Assignment itName assignExpr) (s', jd, all)
+    eval rest (s'', jd, all)
+  
 eval (If expr neg zero pos : _) (state, jd, all)
   | evalExpr expr state < 0 = eval (evalGoto neg jd all) (state, jd, all)
   | evalExpr expr state == 0 = eval (evalGoto zero jd all) (state, jd, all)
@@ -141,12 +144,11 @@ main = do
   (filename : _) <- getArgs
   fileContent <- readFile filename
 
-  let parsed = parse fileContent
-  let allStatements = concatInnerStatements parsed
+  let allStatements = parse fileContent
   let jd = readJumpData allStatements
   let ctx = ([], jd, allStatements)
 
-  print allStatements
-  print jd
-  eval parsed ctx
+  -- print allStatements
+  -- print jd
+  eval allStatements ctx
   return ()

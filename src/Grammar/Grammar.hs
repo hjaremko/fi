@@ -81,9 +81,9 @@ data Statement = Assignment Variable Expr
     | Print [Printable]
     | Read Variable
     | LabeledStmt Label Statement
-    | Loop Statement Expr Expr [Statement]
+    | Loop Statement Expr Expr
+    | Continue
     | LabelStmt Label Statement
     | Goto Label
     | If Expr Label Label Label
-    | End 
     deriving Show
