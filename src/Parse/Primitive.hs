@@ -1,5 +1,6 @@
--- Hubert Jaremko - Programowanie funkcyjne 2019/2020
--- Interpreter prostego Fortranu
+-- Hubert Jaremko - Functional programming 2020/2021
+-- Simple Fortran interpreter
+
 module Parse.Primitive where
 
 type Parser a = String -> [(a, String)]
