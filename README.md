@@ -20,7 +20,7 @@ $ ./fi <filename>
 
 ### Output
 ```fortran
-WRTIE "Hello world! ", (2*4 + 2)
+WRITE "Hello world! ", (2*4 + 2)
 ```
 It is possible to print multiple expressions separeted by comma.
 
